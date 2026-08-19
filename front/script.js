@@ -58,6 +58,8 @@ let tasks = [];
 let activeIntervals = {};
 let currentFilter = 'All';
 let isStreakAlertSent = false;
+const API_URL = 'https://tracker-ulan.onrender.com';
+
 
 // Звуки
 const successSound = new Audio('_success_bell.wav');
@@ -81,8 +83,6 @@ if (history[selectedDay] == undefined) {
 }
 
 tasks = history[selectedDay].tasks;
-
-// УТИЛИТЫ
 
 // Получить ключ сегодняшнего дня (YYYY-MM-DD)
 function getTodaykey() {
@@ -756,7 +756,7 @@ async function addAccount(){
 
     console.log(login,password);
 
-    const url = '/api/auth/register';
+    const url = API_URL +'/api/auth/register';
     const sets = { email: login, password: password };
     try{
         const response = await fetch(url, {
@@ -788,7 +788,7 @@ async function loginAccount(){
     if(login=='' || password==''){
         alert('введи логин и пароль!');
     }
-    const url = '/api/auth/login';
+    const url = API_URL +'/api/auth/login';
     const sets = { email: login, password: password };
     try{
         const response = await fetch(url, {
@@ -829,7 +829,7 @@ async function syncDayWithServer() {
     
     console.log('Готовим к отправке в облако:', payload);
 
-    const url = '/api/history/save';
+    const url = API_URL +'/api/history/save';
 
     try{
         const response = await fetch(url, {
@@ -859,7 +859,7 @@ async function loadHistoryFromServer() {
             return; 
         }
 
-        const response = await fetch('/api/history/load', {
+        const response = await fetch(API_URL +'/api/history/load', {
             method: 'GET',
             headers: {
                 'Authorization': 'Bearer ' + token
