@@ -9,7 +9,7 @@ import History from './modules/History.js';
 import cors from 'cors';
 
 try {
-    await mongoose.connect('mongodb+srv://ukanagatov07_db_user:LQcIRlNIYkZXKuuq@cluster0.sxvc3ly.mongodb.net/?appName=Cluster0');
+    await mongoose.connect(process.env.MONGODB_URI);
     console.log('MongoDB подключена успешно');
 } catch(error) {
     console.log('Ошибка подключения к MongoDB:', error);
