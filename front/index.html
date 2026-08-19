@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Трекер Дисциплины</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app">
+        <!-- Sidebar слева -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>Discipline</h1>
+                <p class="date" id="currentDate"></p>
+            </div>
+
+            <div class="streak-box">
+                <span class="streak-icon">🔥</span>
+                <span id="streakCount">0</span>
+            </div>
+
+            <!-- НОВОЕ: Табы -->
+            <div class="sidebar-tabs">
+                <button class="sidebar-tab active" data-tab="tasks">
+                    <span class="tab-icon">📋</span>
+                    <span class="tab-label">Задачи</span>
+                </button>
+                <button class="sidebar-tab" data-tab="stats">
+                    <span class="tab-icon">📊</span>
+                    <span class="tab-label">Статистика</span>
+                </button>
+            </div>
+
+            <!-- НОВОЕ: Контейнер для панелей -->
+            <div class="sidebar-content">
+                <div class="theme-toggle-container">
+                    <button id="themeToggleBtn" class="theme-toggle-btn">
+                        <span class="theme-icon moon">🌙</span>
+                        <span class="theme-toggle-track">
+                            <span class="theme-toggle-thumb"></span>
+                        </span>
+                        <span class="theme-icon sun">☀️</span>
+                    </button>
+                </div>
+                <!-- Панель задач (календарь + статистика) -->
+                <div class="sidebar-panel active" id="sidebar-tasks-panel">
+                    <div class="calendar-section">
+                        <h3>История</h3>
+                        <div class="calendar-controls">
+                            <button id="prevMonthBtn">◀</button>
+                            <span id="calendarTitle"></span>
+                            <button id="nextMonthBtn">▶</button>
+                        </div>
+
+                        <div class="calendar-weekdays">
+                            <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
+                        </div>
+
+                        <div id="calendarGrid"></div>
+                    </div>
+
+                    <div class="stats-section">
+                        <h3>Статистика</h3>
+                        <div class="total-time-box">
+                            <span>Время за день:</span>
+                            <span id="totalDayTime">00:00:00</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Выполнено</span>
+                            <span class="stat-value" id="completedCount">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Всего задач</span>
+                            <span class="stat-value" id="totalCount">0</span>
+                        </div>
+                        <button id="logoutBtn" class="logout-btn">Выйти из аккаунта</button>
+                        <button class="export-btn" id="exportBtn">
+                            💾 Экспорт данных
+                        </button>
+                        <input type="file" id="importFileInp" accept=".json" style="display: none;">
+
+                        <!-- Красивая кнопка, которая будет вызывать этот инпут -->
+                        <button class="import-btn" id="importBtn">
+                            📂 Импорт данных
+                        </button>
+                        <button class="clear-history-btn" id="clearHistoryBtn">
+                            🗑️ Очистить историю
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Панель статистики (краткий обзор) -->
+                <div class="sidebar-panel" id="sidebar-stats-panel">
+                    <div class="quick-stats">
+                        <div class="quick-stat-item">
+                            <span class="quick-stat-label">Эта неделя</span>
+                            <span class="quick-stat-value" id="sidebarWeekTotal">0ч 0м</span>
+                        </div>
+                        <div class="quick-stat-item">
+                            <span class="quick-stat-label">Средний день</span>
+                            <span class="quick-stat-value" id="sidebarWeekAvg">0ч 0м</span>
+                        </div>
+                        <div class="quick-stat-item">
+                            <span class="quick-stat-label">Лучший день</span>
+                            <span class="quick-stat-value" id="sidebarBestDay">0ч 0м</span>
+                        </div>
+                    </div>
+                    <button class="view-full-stats-btn" id="viewFullStatsBtn">
+                        Подробная статистика →
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Основной контент справа -->
+        <main class="main-content">
+            <!-- Панель задач -->
+            <div class="content-panel active" id="tasks-content-panel">
+                <div class="content-header">
+                    <h2>Задачи на сегодня</h2>
+                    <div class="filters">
+                        <button id="filterAll" class="filter-btn active">Все</button>
+                        <button id="filterActive" class="filter-btn">Активные</button>
+                        <button id="filterCompleted" class="filter-btn">Завершённые</button>
+                    </div>
+                </div>
+
+                <div class="task-input">
+                    <input type="text" id="taskInput" placeholder="Добавить новую задачу...">
+                    <button id="addTaskBtn">Добавить</button>
+                    <button id="clearBtn" class="clear-btn">Очистить всё</button>
+                </div>
+
+                <div class="tasks-list">
+                    <ul id="tasksList"></ul>
+                </div>
+
+                <div id="notesWidget" class="day-notes-container">
+                    <button id="toggleNotesBtn" class="notes-tab-btn">
+                        Заметки дня
+                    </button>
+
+                    <div id="notesBody" class="notes-body">
+                        <textarea id="dayNotesInput" placeholder="Как прошёл день? Что было сложно?"></textarea>
+                        <button id="saveNotesBtn">Сохранить заметки</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Панель статистики -->
+            <div class="content-panel" id="stats-content-panel">
+                <div class="stats-header">
+                    <h2>Статистика за неделю</h2>
+                    <button class="back-to-tasks-btn" id="backToTasksBtn">
+                        ← Назад к задачам
+                    </button>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="stats-cards-grid">
+                    <div class="stat-card">
+                        <span class="stat-card-label">Эта неделя</span>
+                        <span class="stat-card-value" id="statsWeekTotal">0ч 0м</span>
+                        <span class="stat-card-change" id="statsWeekChange">—</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-card-label">Лучший день</span>
+                        <span class="stat-card-value" id="statsBestDay">0ч 0м</span>
+                        <span class="stat-card-date" id="statsBestDayDate">—</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-card-label">Средний день</span>
+                        <span class="stat-card-value" id="statsAvgDay">0ч 0м</span>
+                        <span class="stat-card-subtitle">за неделю</span>
+                    </div>
+                </div>
+
+                <!-- Task Completion Rate -->
+                <div class="chart-container">
+                    <h3 class="chart-title">Выполнение задач за неделю</h3>
+                    <div class="completion-chart" id="taskCompletionChart">
+                        <!-- JS will generate 7 bars here -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <div id="authBlock" class="auth-overlay">
+        <div class="auth-card">
+            <h2>Вход в аккаунт</h2>
+            
+            <input type="email" id="authEmail" placeholder="Введите Email" required>
+            <input type="password" id="authPassword" placeholder="Введите пароль" required>
+            
+            <div class="auth-buttons">
+                <button id="loginBtn">Войти</button>
+                <button id="registerBtn">Регистрация</button>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
