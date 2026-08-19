@@ -771,7 +771,9 @@ async function addAccount(){
         }
         const result = await response.json();
         console.log('Success:', result);
-        
+        localStorage.setItem('authToken', result.token);
+        checkToken();
+
     }
     catch(error){
         console.error('Submission failed:', error);
