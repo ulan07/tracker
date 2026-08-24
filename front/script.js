@@ -538,7 +538,7 @@ async function clearHistory() {
         renderCalendar();
         renderTasks();
         updateStats();
-        updateStreak();
+        calculateStreak();
 
         // Очищаем на сервере
         const token = localStorage.getItem('authToken');
