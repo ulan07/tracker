@@ -131,6 +131,29 @@ app.get('/api/history/load', async (req, res) => {
     }
 });
 
+app.delete('/api/history/clear', async (req, res) => {
+    try {
+        const authHeader = req.headers['authorization'];
+        if (!authHeader) {
+            return res.status(401).json({ success: false, message: 'Доступ запрещен' });
+        }
+
+        const token = authHeader.split(' ')[1];
+        const decoded = jwt.verify(token, 'SUPER_SECRET_KEY');
+
+        const result = await History.deleteMany({ userId: decoded.userId });
+
+        return res.status(200).json({
+            success: true,
+            message: 'Вся история успешно удалена!',
+            deletedCount: result.deletedCount
+        });
+    } catch(error) {
+        console.log(error);
+        return res.status(401).json({ success: false, message: 'Неверный или протухший токен' });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Сервер запущен: http://localhost:${PORT}`);
 });

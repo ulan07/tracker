@@ -521,8 +521,9 @@ function exportData(){
     URL.revokeObjectURL(url);
 }
 
-function clearHistory() {
+async function clearHistory() {
     if (confirm('Вы уверены? Это удалит ВСЮ историю безвозвратно!')) {
+        // Очищаем локально
         history = {};
         history[currentDayKey] = {
             tasks: [],
@@ -538,6 +539,24 @@ function clearHistory() {
         renderTasks();
         updateStats();
         updateStreak();
+
+        // Очищаем на сервере
+        const token = localStorage.getItem('authToken');
+        if (token) {
+            try {
+                const response = await fetch(API_URL + '/api/history/clear', {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+                const data = await response.json();
+                console.log('История удалена из базы:', data);
+            } catch(error) {
+                console.error('Ошибка удаления истории с сервера:', error);
+            }
+        }
+
         alert('История полностью очищена!');
     }
 }
