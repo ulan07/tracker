@@ -914,6 +914,7 @@ async function loadHistoryFromServer() {
             tasks = history[selectedDay].tasks;
             dayNotesInput.value = history[selectedDay].dayNotes;
 
+            saveTasks(); // Сохраняем загруженные данные в localStorage
             renderTasks();
             renderCalendar();
         }
