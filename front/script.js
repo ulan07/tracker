@@ -47,6 +47,13 @@ const loginBtn = document.getElementById('loginBtn');
 const authPassword = document.getElementById('authPassword');
 const authEmail = document.getElementById('authEmail');
 const logoutBtn = document.getElementById('logoutBtn');
+const aiToggleBtn = document.getElementById('aiToggleBtn');
+const aiCloseBtn = document.getElementById('aiCloseBtn');
+const aiSidebar = document.getElementById('aiSidebar');
+const aiInput = document.getElementById('aiInput');
+const aiSendBtn = document.getElementById('aiSendBtn');
+const aiChatBody = document.getElementById('aiChatBody');
+const aiAnalyzeBtn = document.getElementById('aiAnalyzeBtn');
 
 // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ 
 let history = {};
@@ -245,7 +252,12 @@ function startTask(id){
         activeIntervals[task.id]=setInterval(() => {
             const elapsed = Math.floor((Date.now() - task.startTime) / 1000);
             task.seconds = task.baseSeconds + elapsed;
+
+            // Обновляем totalTime инкрементально
+            history[selectedDay].totalTime = calculateTotalTime();
+
             saveTasks();
+            syncDayWithServer();
             renderTasks();
         },1000);
         clickSound.play();
@@ -253,8 +265,13 @@ function startTask(id){
     else{
         task.isTrunning=false;
         clearInterval(activeIntervals[task.id]);
+
+        // Финальное обновление totalTime при остановке
+        history[selectedDay].totalTime = calculateTotalTime();
+
         clickSound.play();
         saveTasks();
+        syncDayWithServer();
         renderTasks();
     }
 }
@@ -264,12 +281,16 @@ function initTimers() {
         if (task.isTrunning) {
             const elapsed = Math.floor((Date.now() - task.startTime) / 1000);
             task.seconds = task.baseSeconds + elapsed;
-            saveTasks();
 
             activeIntervals[task.id] = setInterval(() => {
                 const elapsed = Math.floor((Date.now() - task.startTime) / 1000);
                 task.seconds = task.baseSeconds + elapsed;
+
+                // Обновляем totalTime при каждом тике
+                history[selectedDay].totalTime = calculateTotalTime();
+
                 saveTasks();
+                syncDayWithServer();
                 renderTasks();
             }, 1000);
         }
@@ -281,7 +302,9 @@ function stopTask(id){
     task.isTrunning=false;
     clearInterval(activeIntervals[task.id]);
     task.seconds=0;
+    updateTotalDayTime(); // Обновляем totalTime после сброса
     saveTasks();
+    syncDayWithServer();
     renderTasks();
 }
 
@@ -337,14 +360,16 @@ function deleteTask(id){
         tasks.splice(index, 1);
     }
     updateDayStatus();
+    updateTotalDayTime(); // Пересчитываем totalTime после удаления
     saveTasks();
     renderTasks();
 }
 
 function clear(){
     tasks.length = 0;
-    
-    history[selectedDay].status = "red"; 
+
+    history[selectedDay].status = "red";
+    updateTotalDayTime(); // Пересчитываем totalTime после очистки
     saveTasks();
     updateDayStatus();
     renderTasks();
@@ -376,17 +401,22 @@ function updateStats() {
     completedCount.textContent = completed;
     totalCount.textContent = total;
     streakCount.textContent=calculateStreak();
-    updateTotalDayTime();
+    // Только отображаем totalTime, не пересчитываем
     totalDayTime.textContent=greatTime(history[selectedDay].totalTime);
 }
 
 function updateTotalDayTime() {
-    let dayTime=0;
-    tasks.forEach(task => {
-        dayTime+=task.seconds;
-    });
-    history[selectedDay].totalTime = dayTime;
+    history[selectedDay].totalTime = calculateTotalTime();
     syncDayWithServer();
+}
+
+// Новая функция для расчёта общего времени
+function calculateTotalTime() {
+    let dayTime = 0;
+    tasks.forEach(task => {
+        dayTime += task.seconds;
+    });
+    return dayTime;
 }
 
 function fAll(){
@@ -424,6 +454,15 @@ function updateFilterButtons(){
 }
 
 // События
+aiToggleBtn.addEventListener('click', () => {
+    aiSidebar.classList.add('open');
+    document.body.classList.add('ai-chat-open');
+});
+
+aiCloseBtn.addEventListener('click', () => {
+    aiSidebar.classList.remove('open');
+    document.body.classList.remove('ai-chat-open');
+});
 logoutBtn.addEventListener('click',()=>{
     localStorage.removeItem('authToken');
     localStorage.removeItem('history');
@@ -833,6 +872,94 @@ async function loginAccount(){
     catch(error){
         console.error('Submission failed:', error);
     }
+}
+
+
+
+async function analyzeDayWithAI() {
+
+    appendMessage('Анализирую ваши сегодняшние задачи, таймеры и заметки... 📊', 'bot');
+    
+    const url = API_URL + '/api/ai/chat';
+    const token = localStorage.getItem('authToken');
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+
+            body: JSON.stringify({ 
+                date: selectedDay 
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Ошибка сервера при анализе');
+        }
+
+        const result = await response.json();
+
+        appendMessage(result.reply, 'bot');
+
+    } catch (error) {
+        console.error('Ошибка анализа дня:', error);
+        appendMessage('Не удалось получить анализ дня от ментора.', 'bot');
+    }
+}
+
+aiAnalyzeBtn.addEventListener('click', () => analyzeDayWithAI());
+
+
+async function sendMessageToAI() {
+    const userInput = aiInput.value.trim();
+    if (userInput === '') return;
+    appendMessage(userInput, 'user');
+    aiInput.value = ''; 
+    const url = API_URL + '/api/ai/chat'; 
+    const token = localStorage.getItem('authToken');
+    try {
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({ 
+                date: selectedDay, 
+                userMessage: userInput 
+        })
+        
+    });
+    
+    if (!response.ok) {
+        throw new Error('Ошибка сервера');
+    }
+
+    const result = await response.json(); // Читаем ответ от бэкенда
+    console.log('Успех:', result);
+    aiInput.value = '';
+    appendMessage(result.reply, 'bot');
+    }
+    catch (error) {
+    console.error('Ошибка:', error);
+  }
+}
+
+aiSendBtn.addEventListener('click', ()=>sendMessageToAI());
+
+function appendMessage(text, sender) {
+    const messageDiv = document.createElement('div');
+
+    messageDiv.className = `ai-message ${sender}`;
+
+    messageDiv.innerText = text;
+
+    aiChatBody.appendChild(messageDiv);
+
+    aiChatBody.scrollTop = aiChatBody.scrollHeight;
 }
 
 async function syncDayWithServer() {

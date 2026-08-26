@@ -38,6 +38,22 @@ const historySchema = new mongoose.Schema({
         seconds: {
             type: Number,
             required: true
+        },
+        isTrunning: {
+            type: Boolean,
+            default: false
+        },
+        startTime: {
+            type: Number,
+            default: null
+        },
+        baseSeconds: {
+            type: Number,
+            default: 0
+        },
+        isEditing: {
+            type: Boolean,
+            default: false
         }
     }]
 });

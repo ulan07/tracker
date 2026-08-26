@@ -119,10 +119,13 @@
             <div class="content-panel active" id="tasks-content-panel">
                 <div class="content-header">
                     <h2>Задачи на сегодня</h2>
-                    <div class="filters">
-                        <button id="filterAll" class="filter-btn active">Все</button>
-                        <button id="filterActive" class="filter-btn">Активные</button>
-                        <button id="filterCompleted" class="filter-btn">Завершённые</button>
+                    <div class="header-actions">
+                        <div class="filters">
+                            <button id="filterAll" class="filter-btn active">Все</button>
+                            <button id="filterActive" class="filter-btn">Активные</button>
+                            <button id="filterCompleted" class="filter-btn">Завершённые</button>
+                        </div>
+                        <button id="aiToggleBtn" class="ai-toggle-btn">🤖 Ментор</button>
                     </div>
                 </div>
 
@@ -199,6 +202,35 @@
             </div>
         </div>
     </div>
+    <div id="aiSidebar" class="ai-sidebar">
+
+        <div class="ai-sidebar-header">
+            <h3>🧠 Ваш AI-Ментор</h3>
+            <button id="aiCloseBtn" class="ai-close-btn">&times;</button>
+        </div>
+        
+        <div id="aiChatBody" class="ai-chat-body">
+            <div class="ai-message system">
+                Нажмите «Анализ дня», чтобы я прочитал ваши сегодняшние успехи и дал вердикт, или просто задайте мне любой вопрос ниже.
+            </div>
+        </div>
+        
+
+        <div class="ai-sidebar-footer">
+            
+
+            <button id="aiAnalyzeBtn" class="ai-analyze-btn">📊 Анализ дня</button>
+
+            <div class="ai-chat-input-container">
+                <input type="text" id="aiInput" placeholder="Задайте вопрос ментору..." autocomplete="off">
+                <button id="aiSendBtn">🚀</button>
+            </div>
+            
+        </div> 
+        
+    </div> 
+
+
     <script src="script.js"></script>
 </body>
 </html>
