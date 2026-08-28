@@ -1751,8 +1751,11 @@ body.light-theme .theme-icon.moon {
 
     .filter-btn {
         flex: 1;
-        padding: 10px 12px;
-        font-size: 12px;
+        padding: 10px 8px;
+        font-size: 11px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     /* Task Input */
