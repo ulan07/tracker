@@ -9,6 +9,11 @@ import History from './modules/History.js';
 import cors from 'cors';
 import { OpenAI } from 'openai';
 
+const openai = new OpenAI({
+            baseURL: "https://openrouter.ai/api/v1",
+            apiKey: process.env.OPENROUTER_API_KEY
+        });
+
 try {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('MongoDB подключена успешно');
@@ -159,14 +164,16 @@ app.post('/api/ai/chat',async (req,res) =>{
         }).join('\n')
         : "Пользователь еще не добавил задачи на этот день";
 
-        const systemPrompt = `Ты — жесткий, но мотивирующий AI-ментор по продуктивности и дисциплине. 
+        const systemPrompt = `Ты — жесткий, но мотивирующий AI-ментор по продуктивности и дисциплине.
         Твоя цель — помогать пользователю анализировать его успехи и отвечать на его вопросы.
         Вот данные за выбранный день (${date}):
         Статус дня: ${dayData?.status || 'Не указан'}
         Заметки дня: ${dayData?.dayNotes || 'Заметок нет'}
         Список задач на сегодня:\n${tasksContext}`;
 
-        await openai.chat.completions.create({
+        
+
+        const completion = await openai.chat.completions.create({
             model : "meta-llama/llama-3-8b-instruct:free",
             messages : [{ role: "system", content: systemPrompt }, { role: "user", content: finalPrompt }]
         });
