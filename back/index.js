@@ -7,6 +7,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import History from './modules/History.js';
 import cors from 'cors';
+import { OpenAI } from 'openai';
 
 try {
     await mongoose.connect(process.env.MONGODB_URI);
@@ -130,6 +131,53 @@ app.get('/api/history/load', async (req, res) => {
         return res.status(401).json({ success: false, message: 'Неверный или протухший токен' });
     }
 });
+
+app.post('/api/ai/chat',async (req,res) =>{
+    try{
+        const authHeader = req.headers['authorization'];
+        if (!authHeader) {
+            return res.status(401).json({ success: false, message: 'Доступ запрещен' });
+        }
+
+        const token = authHeader.split(' ')[1];
+        const decoded = jwt.verify(token, 'SUPER_SECRET_KEY');
+
+        const { date, userMessage} = req.body;
+        const dayData = await History.findOne({userId: decoded.userId, date: date});
+        let finalPrompt = ""
+        if(!userMessage){
+            finalPrompt = "Проанализируй мой текущий день на основе моих задач и дай совет";
+        }
+        else{
+            finalPrompt = userMessage;
+        }
+
+        const tasksContext = dayData && dayData.tasks && dayData.tasks.length>0 ? 
+        dayData.tasks.map(task => {
+            const status = task.completed ? 'Выполнено' : 'Не выполнено';
+            return `- [${task.text}]: ${status} (Время: ${task.seconds} секунд)`;
+        }).join('\n')
+        : "Пользователь еще не добавил задачи на этот день";
+
+        const systemPrompt = `Ты — жесткий, но мотивирующий AI-ментор по продуктивности и дисциплине. 
+        Твоя цель — помогать пользователю анализировать его успехи и отвечать на его вопросы.
+        Вот данные за выбранный день (${date}):
+        Статус дня: ${dayData?.status || 'Не указан'}
+        Заметки дня: ${dayData?.dayNotes || 'Заметок нет'}
+        Список задач на сегодня:\n${tasksContext}`;
+
+        await openai.chat.completions.create({
+            model : "meta-llama/llama-3-8b-instruct:free",
+            messages : [{ role: "system", content: systemPrompt }, { role: "user", content: finalPrompt }]
+        });
+        return res.status(200).json({ success: true, reply: completion.choices[0].message.content });
+
+    }
+    catch(error){
+        console.log(error);
+        return res.status(500).json({ success: false});
+    }
+})
 
 app.delete('/api/history/clear', async (req, res) => {
     try {
