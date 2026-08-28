@@ -174,7 +174,7 @@ app.post('/api/ai/chat',async (req,res) =>{
         
 
         const completion = await openai.chat.completions.create({
-            model : "google/gemma-4-26b-a4b-it:free",
+            model : "liquid/lfm-2.5-2.6b:free",
             messages : [{ role: "system", content: systemPrompt }, { role: "user", content: finalPrompt }]
         });
         return res.status(200).json({ success: true, reply: completion.choices[0].message.content });
