@@ -2248,10 +2248,29 @@ body.ai-chat-open {
     .ai-sidebar {
         right: -100%;
         width: 100%;
+        height: 100vh;
+        height: 100dvh; /* Dynamic viewport height for mobile browsers */
     }
 
     .ai-sidebar.open {
         right: 0;
+    }
+
+    .ai-chat-body {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+        max-height: calc(100vh - 200px); /* Header + footer space */
+        max-height: calc(100dvh - 200px);
+    }
+
+    .ai-sidebar-header {
+        flex-shrink: 0;
+    }
+
+    .ai-sidebar-footer {
+        flex-shrink: 0;
     }
 }
 
