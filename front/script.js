@@ -125,6 +125,7 @@ function addTask() {
         isEditing: false,
 
         seconds: 0,
+        baseSeconds: 0,
         isTrunning: false,
         startTime: null
     };
@@ -266,6 +267,9 @@ function startTask(id){
         task.isTrunning=false;
         clearInterval(activeIntervals[task.id]);
 
+        // Сохраняем накопленное время как новую базу
+        task.baseSeconds = task.seconds;
+
         // Финальное обновление totalTime при остановке
         history[selectedDay].totalTime = calculateTotalTime();
 
@@ -346,6 +350,7 @@ function toggleTask(id){
     if(task){
         task.completed = !task.completed;
         if(task.completed) successSound.play();
+        updateTotalDayTime(); // Пересчитываем totalTime перед сохранением
         saveTasks();
         renderTasks();
         updateDayStatus();
